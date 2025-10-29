@@ -40,7 +40,7 @@ class AliasRunner
         {
             Console.WriteLine("Available aliases:\n");
             foreach (var kvp in aliases)
-                Console.WriteLine($"  {kvp.Key,-15} → {kvp.Value}");
+                Console.WriteLine($"  {kvp.Key,-15} => {kvp.Value}");
             return 0;
         }
 
@@ -51,12 +51,20 @@ class AliasRunner
             return 1;
         }
 
-        // Build full command (alias command + extra args)
-        string command = aliases[aliasName];
-        if (args.Length > 1)
+        // Build command from alias and args
+        string template = aliases[aliasName];
+        string command;
+
+        // Try to fill placeholders {0}, {1}, ...
+        try
         {
-            string extraArgs = string.Join(" ", args, 1, args.Length - 1);
-            command += " " + extraArgs;
+            command = string.Format(template, args.Length > 1 ? args[1..] : Array.Empty<string>());
+        }
+        catch (FormatException)
+        {
+            // If placeholders mismatch, fallback to appending extra args
+            string extraArgs = args.Length > 1 ? string.Join(" ", args[1..]) : "";
+            command = template + (extraArgs != "" ? " " + extraArgs : "");
         }
 
         Console.WriteLine($"> {command}");
